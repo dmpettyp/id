@@ -2,7 +2,7 @@ package id
 
 import "fmt"
 
-func Intitalizers[T any](
+func Inititalizers[T any](
 	createWrapper func(ID) T,
 ) (
 	newID func() (T, error),

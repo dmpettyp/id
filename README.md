@@ -30,7 +30,7 @@ type EventID struct{ id.ID }
 // Create the initializers for the EventID type. To create the initializers
 // a function must be provided that returns the new ID type with the embedded
 // id.ID set in it.
-var NewEventID, MustNewEventID, ParseEventID = id.Intitalizers(
+var NewEventID, MustNewEventID, ParseEventID = id.Inititalizers(
 	func(id id.ID) EventID { return EventID{ID: id} },
 )
 
