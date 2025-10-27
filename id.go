@@ -3,7 +3,6 @@ package id
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	google_uuid "github.com/google/uuid"
@@ -21,38 +20,41 @@ type ID struct {
 	GoogleUUID google_uuid.UUID
 }
 
-// New creates a new random UUID and returns an error if a
-// UUID can't be generated.
-func New() (ID, error) {
-	id, err := google_uuid.NewRandom()
-
-	if err != nil {
-		return ID{}, errors.New("could not generate a UUID")
+func Inititalizers[T any](
+	createWrapper func(ID) T,
+) (
+	newID func() (T, error),
+	mustNewID func() T,
+	parseID func(s string) (T, error),
+) {
+	newID = func() (T, error) {
+		var zero T
+		googleID, err := google_uuid.NewRandom()
+		if err != nil {
+			return zero, fmt.Errorf("could not generate a UUID for %T: %w", zero, err)
+		}
+		return createWrapper(ID{GoogleUUID: googleID}), nil
 	}
 
-	return ID{GoogleUUID: id}, nil
-}
+	mustNewID = func() T {
+		return createWrapper(ID{GoogleUUID: google_uuid.New()})
+	}
 
-// MustNew creates a new random UUID or panics
-func MustNew() ID {
-	return ID{GoogleUUID: google_uuid.New()}
+	parseID = func(s string) (T, error) {
+		var zero T
+		googleID, err := google_uuid.Parse(s)
+		if err != nil {
+			return zero, fmt.Errorf("could not parse a %T: %w", zero, err)
+		}
+		return createWrapper(ID{GoogleUUID: googleID}), nil
+	}
+
+	return newID, mustNewID, parseID
 }
 
 // String returns the string form of the UUID
 func (uuid ID) String() string {
 	return uuid.GoogleUUID.String()
-}
-
-// Parse constructs a UUID by parsing a UUID string and storing the resulting
-// value in a UUID struct
-func Parse(s string) (ID, error) {
-	id, err := google_uuid.Parse(s)
-
-	if err != nil {
-		return ID{}, fmt.Errorf("could not parse UUID from %q: %w", s, err)
-	}
-
-	return ID{GoogleUUID: id}, nil
 }
 
 // Scan implements sql.Scanner so UUIDs can be read from databases
