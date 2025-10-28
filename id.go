@@ -20,7 +20,7 @@ type ID struct {
 	GoogleUUID google_uuid.UUID
 }
 
-func Inititalizers[T any](
+func Create[T any](
 	createWrapper func(ID) T,
 ) (
 	newID func() (T, error),
